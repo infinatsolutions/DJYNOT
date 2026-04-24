@@ -44,16 +44,36 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
     return '';
   }
 
+  async function parseResponse(response) {
+    const text = await response.text();
+    try {
+      return text ? JSON.parse(text) : {};
+    } catch (_) {
+      return { message: text || '' };
+    }
+  }
+
   async function postJson(endpoint, payload) {
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(payload)
     });
 
-    const text = await response.text();
-    let data = {};
-    try { data = text ? JSON.parse(text) : {}; } catch (_) { data = { message: text || '' }; }
+    const data = await parseResponse(response);
+    if (!response.ok || data.success === false) {
+      throw new Error(data.message || 'Unable to send your request right now.');
+    }
+
+    return data;
+  }
+
+  async function postMultipart(endpoint, payload) {
+    const body = new FormData();
+    Object.keys(payload).forEach((key) => body.append(key, payload[key]));
+
+    const response = await fetch(endpoint, { method: 'POST', body });
+    const data = await parseResponse(response);
 
     if (!response.ok || data.success === false) {
       throw new Error(data.message || 'Unable to send your request right now.');
@@ -62,7 +82,7 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
     return data;
   }
 
-  async function postFormEncoded(endpoint, payload) {
+  async function postFreeform(endpoint, payload) {
     const body = new URLSearchParams(payload);
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -71,7 +91,7 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
     });
 
     if (!response.ok) {
-      throw new Error('Submission endpoint returned an error.');
+      throw new Error('FREEFORM endpoint returned an error.');
     }
 
     return { success: true, message: 'Booking request sent successfully.' };
@@ -81,7 +101,7 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
     event.preventDefault();
 
     if (window.location.protocol === 'file:') {
-      setFeedback('Form submission is disabled on file:// previews. Upload to hosting or run a local server.');
+      setFeedback('Form submission is disabled on file:// previews. Upload to hosting or use a local server URL like http://localhost.');
       return;
     }
 
@@ -105,24 +125,38 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
     const error = validateForm(payload);
     if (error) return setFeedback(error);
 
-    const endpoint = FREEFORM_ENDPOINT.trim() || PHP_FALLBACK_ENDPOINT;
     const usingFreeform = Boolean(FREEFORM_ENDPOINT.trim());
+    const endpoint = usingFreeform
+      ? FREEFORM_ENDPOINT.trim()
+      : new URL(PHP_FALLBACK_ENDPOINT, window.location.href).toString();
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
     setFeedback('');
 
     try {
-      const result = usingFreeform
-        ? await postFormEncoded(endpoint, payload)
-        : await postJson(endpoint, payload);
+      let result;
+
+      if (usingFreeform) {
+        result = await postFreeform(endpoint, payload);
+      } else {
+        try {
+          result = await postJson(endpoint, payload);
+        } catch (err) {
+          if (/Failed to fetch/i.test(String(err.message))) {
+            result = await postMultipart(endpoint, payload);
+          } else {
+            throw err;
+          }
+        }
+      }
 
       form.reset();
       setFeedback(result.message || 'Booking request sent successfully.', 'success');
     } catch (err) {
       const msg = err && err.message ? err.message : 'Unable to send your request at this time.';
       if (/Failed to fetch/i.test(msg)) {
-        setFeedback('Connection issue detected. If FREEFORM is not set, confirm contact.php is deployed. You can also configure FREEFORM_ENDPOINT in assets/js/main.js.');
+        setFeedback('Connection issue detected. Confirm contact.php is deployed on the same domain or set FREEFORM_ENDPOINT in assets/js/main.js.');
       } else {
         setFeedback(msg);
       }
