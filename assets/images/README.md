@@ -2,4 +2,9 @@
 
 This website is intentionally CSS-first for performance and shared-hosting simplicity.
 
-You can place optimized image assets in this folder (WebP, SVG, JPG, PNG) and reference them in `index.html` or `assets/css/styles.css`.
+Current placeholder assets included:
+- `hero-placeholder.svg`
+- `services-placeholder.svg`
+- `about-placeholder.svg`
+
+Replace these with real event photos when available (optimized WebP/SVG/JPG/PNG).

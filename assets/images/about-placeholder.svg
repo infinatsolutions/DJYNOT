@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" role="img" aria-label="About DJ YNOT placeholder image">
+  <rect width="1000" height="700" fill="#12121a"/>
+  <rect x="120" y="120" width="760" height="460" rx="24" fill="#1a1a25" stroke="#e4b75b" stroke-width="4"/>
+  <circle cx="300" cy="350" r="100" fill="#24c4ff" opacity=".35"/>
+  <circle cx="500" cy="350" r="100" fill="#7b2cff" opacity=".35"/>
+  <circle cx="700" cy="350" r="100" fill="#e4b75b" opacity=".35"/>
+  <text x="170" y="620" fill="#f3f4ff" font-family="Arial, sans-serif" font-size="34">About Section Placeholder • Add brand photography</text>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-label="Event services placeholder image">
+  <rect width="1200" height="700" fill="#0d0f1a"/>
+  <g fill="none" stroke="#24c4ff" stroke-width="6" opacity=".7">
+    <path d="M0 500 Q180 420 360 500 T720 500 T1080 500 T1200 500"/>
+  </g>
+  <g fill="#7b2cff" opacity=".5">
+    <circle cx="220" cy="220" r="90"/>
+    <circle cx="420" cy="180" r="56"/>
+    <circle cx="620" cy="240" r="72"/>
+  </g>
+  <text x="70" y="640" fill="#f3f4ff" font-family="Arial, sans-serif" font-size="38">Placeholder Event Image • Replace with live event photos</text>
+</svg>

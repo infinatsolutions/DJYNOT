@@ -34,7 +34,7 @@ dj-ynot-website/
 5. Upload `.htaccess` only if your host uses Apache and supports these directives.
 6. Visit `https://djynot.live`.
 7. Submit a booking request test.
-8. Confirm the message arrives at `djynotlive@iCloud.com`.
+8. Confirm the message arrives at `djynotlive@icloud.com`.
 
 ## 5. How to upload via cPanel or FTP
 - **cPanel File Manager**: drag and drop files into `public_html`.
@@ -57,7 +57,7 @@ Payload fields sent:
 - preferredContactMethod
 - message
 - website (honeypot)
-- recipient (`djynotlive@iCloud.com`)
+- recipient (`djynotlive@icloud.com`)
 - source (`djynot.live contact form`)
 
 ## 7. FREEFORM setup option
@@ -66,8 +66,9 @@ Payload fields sent:
    ```js
    const FREEFORM_ENDPOINT = "https://your-freeform-endpoint";
    ```
-3. Keep private credentials out of client-side code.
-4. If FREEFORM requires server-side secrets, use `contact.php` mode instead.
+3. FREEFORM mode sends URL-encoded data with recipient `djynotlive@icloud.com` and source `djynot.live contact form`.
+4. Keep private credentials out of client-side code.
+5. If FREEFORM requires server-side secrets, use `contact.php` mode instead.
 
 ## 8. PHP mail() fallback setup
 Default mode works when `FREEFORM_ENDPOINT` is empty.
@@ -78,7 +79,7 @@ Default mode works when `FREEFORM_ENDPOINT` is empty.
 - validates email and phone format
 - blocks honeypot spam
 - sanitizes and limits lengths
-- sends plain text email to `djynotlive@iCloud.com`
+- sends plain text email to `djynotlive@icloud.com`
 - returns JSON success/error response
 
 ## 9. How to change recipient email
@@ -96,6 +97,7 @@ Default mode works when `FREEFORM_ENDPOINT` is empty.
 
 ## 11. If PHP mail() does not send
 - Check spam/junk folder.
+- If you see "Failed to fetch", confirm you are not opening the site with `file://` and that the configured endpoint is reachable over HTTPS.
 - Confirm `mail()` is enabled on host.
 - Ensure sender domain is verified if host requires it.
 - Ask host whether SMTP is mandatory.
@@ -106,7 +108,7 @@ Default mode works when `FREEFORM_ENDPOINT` is empty.
 - Keep contact information accurate:
   - Email: `djynot@iCloud.com`
   - Phone: `415-506-9668`
-  - Booking recipient: `djynotlive@iCloud.com`
+  - Booking recipient: `djynotlive@icloud.com`
 
 ## 13. Accessibility checklist
 - Semantic sections and heading order
@@ -132,7 +134,7 @@ Default mode works when `FREEFORM_ENDPOINT` is empty.
 - [ ] Navigation and mobile menu work
 - [ ] Contact links (`mailto`, `tel`) work
 - [ ] Form submits and returns success/error state properly
-- [ ] Test booking email arrives at `djynotlive@iCloud.com`
+- [ ] Test booking email arrives at `djynotlive@icloud.com`
 - [ ] `.htaccess` compatibility confirmed
 - [ ] No placeholder content remains
 

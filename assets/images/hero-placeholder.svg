@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="DJ booth atmosphere placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#1b1133"/>
+      <stop offset="1" stop-color="#061a2c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <circle cx="380" cy="380" r="220" fill="none" stroke="#7b2cff" stroke-width="16" opacity=".7"/>
+  <circle cx="380" cy="380" r="140" fill="none" stroke="#24c4ff" stroke-width="8" opacity=".8"/>
+  <rect x="720" y="260" width="40" height="260" rx="20" fill="#24c4ff"/>
+  <rect x="780" y="210" width="40" height="310" rx="20" fill="#7b2cff"/>
+  <rect x="840" y="300" width="40" height="220" rx="20" fill="#e4b75b"/>
+  <text x="60" y="730" fill="#f3f4ff" font-family="Arial, sans-serif" font-size="42">DJ YNOT • Placeholder Hero Visual</text>
+</svg>

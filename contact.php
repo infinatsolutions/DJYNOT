@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Fixed recipient. You can move this to config.php if desired.
-$recipient = 'djynotlive@iCloud.com';
+$recipient = 'djynotlive@icloud.com';
 $subject = 'New DJ YNOT Booking Request';
 $source = 'djynot.live contact form';
 
