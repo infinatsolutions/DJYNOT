@@ -56,6 +56,7 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
   async function postJson(endpoint, payload) {
     const response = await fetch(endpoint, {
       method: 'POST',
+      credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(payload)
     });
@@ -72,7 +73,28 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
     const body = new FormData();
     Object.keys(payload).forEach((key) => body.append(key, payload[key]));
 
-    const response = await fetch(endpoint, { method: 'POST', body });
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      credentials: 'same-origin',
+      body
+    });
+    const data = await parseResponse(response);
+
+    if (!response.ok || data.success === false) {
+      throw new Error(data.message || 'Unable to send your request right now.');
+    }
+
+    return data;
+  }
+
+  async function postUrlEncoded(endpoint, payload) {
+    const body = new URLSearchParams(payload);
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', Accept: 'application/json' },
+      body
+    });
     const data = await parseResponse(response);
 
     if (!response.ok || data.success === false) {
@@ -95,6 +117,12 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
     }
 
     return { success: true, message: 'Booking request sent successfully.' };
+  }
+
+  function resolvePhpEndpoint() {
+    const formAction = form?.getAttribute('action')?.trim();
+    const raw = formAction || PHP_FALLBACK_ENDPOINT;
+    return new URL(raw, window.location.origin + window.location.pathname).toString();
   }
 
   async function submitBooking(event) {
@@ -126,9 +154,7 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
     if (error) return setFeedback(error);
 
     const usingFreeform = Boolean(FREEFORM_ENDPOINT.trim());
-    const endpoint = usingFreeform
-      ? FREEFORM_ENDPOINT.trim()
-      : new URL(PHP_FALLBACK_ENDPOINT, window.location.href).toString();
+    const endpoint = usingFreeform ? FREEFORM_ENDPOINT.trim() : resolvePhpEndpoint();
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
@@ -142,11 +168,11 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
       } else {
         try {
           result = await postJson(endpoint, payload);
-        } catch (err) {
-          if (/Failed to fetch/i.test(String(err.message))) {
+        } catch (_) {
+          try {
             result = await postMultipart(endpoint, payload);
-          } else {
-            throw err;
+          } catch (_) {
+            result = await postUrlEncoded(endpoint, payload);
           }
         }
       }
@@ -155,8 +181,8 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
       setFeedback(result.message || 'Booking request sent successfully.', 'success');
     } catch (err) {
       const msg = err && err.message ? err.message : 'Unable to send your request at this time.';
-      if (/Failed to fetch/i.test(msg)) {
-        setFeedback('Connection issue detected. Confirm contact.php is deployed on the same domain or set FREEFORM_ENDPOINT in assets/js/main.js.');
+      if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+        setFeedback('Connection issue detected. Confirm this page is served over HTTPS and contact.php exists at the same domain path. If using FREEFORM, set FREEFORM_ENDPOINT to your live endpoint URL.');
       } else {
         setFeedback(msg);
       }

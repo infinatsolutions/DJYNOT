@@ -97,7 +97,7 @@ Default mode works when `FREEFORM_ENDPOINT` is empty.
 
 ## 11. If PHP mail() does not send
 - Check spam/junk folder.
-- If you see "Failed to fetch", confirm you are not opening the site with `file://` and that the configured endpoint is reachable over HTTPS.
+- If you see "Failed to fetch", confirm you are not opening the site with `file://`, that this page is served over HTTPS, and that `contact.php` exists at the same deployed path.
 - Confirm `mail()` is enabled on host.
 - Ensure sender domain is verified if host requires it.
 - Ask host whether SMTP is mandatory.
