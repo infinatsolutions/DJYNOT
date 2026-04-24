@@ -88,7 +88,11 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
   }
 
   function getPhpEndpoint() {
-    return form?.action ? form.action : new URL(PHP_FALLBACK_ENDPOINT, window.location.href).toString();
+    const resolved = form?.action ? form.action : new URL(PHP_FALLBACK_ENDPOINT, window.location.href).toString();
+    if (window.location.protocol === 'https:' && resolved.startsWith('http:')) {
+      return resolved.replace(/^http:/, 'https:');
+    }
+    return resolved;
   }
 
   async function submitBooking(event) {
@@ -96,6 +100,13 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
 
     if (window.location.protocol === 'file:') {
       setFeedback('Form submission is disabled on file:// previews. Upload to hosting or use a local server URL like http://localhost.');
+      return;
+    }
+
+    if (window.location.protocol === 'http:' && !/localhost|127\.0\.0\.1/.test(window.location.hostname)) {
+      setFeedback('Redirecting to secure HTTPS connection...', 'success');
+      const secureUrl = 'https://' + window.location.host + window.location.pathname + window.location.search + window.location.hash;
+      window.location.replace(secureUrl);
       return;
     }
 
@@ -149,12 +160,12 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
       form.reset();
       setFeedback(result.message || 'Booking request sent successfully.', 'success');
     } catch (error) {
-      // Root cause in many shared-hosting setups: JS fetch can be blocked by host firewall/WAF while normal form payloads are accepted.
+      // Shared-hosting firewalls can block fetch while still accepting standard form-style payloads.
       if (!usingFreeform && sendViaBeacon(endpoint, payload)) {
         form.reset();
         setFeedback('Booking request queued successfully. If you do not hear back soon, please call 415-506-9668.', 'success');
       } else {
-        setFeedback('Submission could not be completed from this browser session. Please call 415-506-9668 or email djynot@iCloud.com while endpoint connectivity is checked.');
+        setFeedback('Submission could not be completed from this browser session. Please call 415-506-9668 or email djynot@iCloud.com while secure endpoint connectivity is checked.');
       }
     } finally {
       submitBtn.disabled = false;

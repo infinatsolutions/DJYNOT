@@ -32,6 +32,7 @@ dj-ynot-website/
 3. Upload `contact.php` to `public_html`.
 4. Upload the entire `assets/` folder to `public_html`.
 5. Upload `.htaccess` only if your host uses Apache and supports these directives.
+   - This file now includes HTTPS redirect and HSTS security headers.
 6. Visit `https://djynot.live`.
 7. Submit a booking request test.
 8. Confirm the message arrives at `djynotlive@icloud.com`.
