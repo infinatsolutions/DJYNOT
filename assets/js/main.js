@@ -44,24 +44,34 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
     return '';
   }
 
-  async function parseResponse(response) {
+  async function parseJsonOrText(response) {
     const text = await response.text();
-    try {
-      return text ? JSON.parse(text) : {};
-    } catch (_) {
-      return { message: text || '' };
-    }
+    try { return text ? JSON.parse(text) : {}; } catch (_) { return { message: text || '' }; }
   }
 
-  async function postJson(endpoint, payload) {
+  async function post(endpoint, payload, contentType) {
+    let body;
+    const headers = { Accept: 'application/json' };
+
+    if (contentType === 'json') {
+      headers['Content-Type'] = 'application/json';
+      body = JSON.stringify(payload);
+    } else if (contentType === 'multipart') {
+      body = new FormData();
+      Object.entries(payload).forEach(([k, v]) => body.append(k, v));
+    } else {
+      headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8';
+      body = new URLSearchParams(payload);
+    }
+
     const response = await fetch(endpoint, {
       method: 'POST',
       credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(payload)
+      headers,
+      body
     });
 
-    const data = await parseResponse(response);
+    const data = await parseJsonOrText(response);
     if (!response.ok || data.success === false) {
       throw new Error(data.message || 'Unable to send your request right now.');
     }
@@ -69,60 +79,16 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
     return data;
   }
 
-  async function postMultipart(endpoint, payload) {
-    const body = new FormData();
-    Object.keys(payload).forEach((key) => body.append(key, payload[key]));
-
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      credentials: 'same-origin',
-      body
+  function sendViaBeacon(endpoint, payload) {
+    if (!('sendBeacon' in navigator)) return false;
+    const blob = new Blob([new URLSearchParams(payload).toString()], {
+      type: 'application/x-www-form-urlencoded;charset=UTF-8'
     });
-    const data = await parseResponse(response);
-
-    if (!response.ok || data.success === false) {
-      throw new Error(data.message || 'Unable to send your request right now.');
-    }
-
-    return data;
+    return navigator.sendBeacon(endpoint, blob);
   }
 
-  async function postUrlEncoded(endpoint, payload) {
-    const body = new URLSearchParams(payload);
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', Accept: 'application/json' },
-      body
-    });
-    const data = await parseResponse(response);
-
-    if (!response.ok || data.success === false) {
-      throw new Error(data.message || 'Unable to send your request right now.');
-    }
-
-    return data;
-  }
-
-  async function postFreeform(endpoint, payload) {
-    const body = new URLSearchParams(payload);
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-      body
-    });
-
-    if (!response.ok) {
-      throw new Error('FREEFORM endpoint returned an error.');
-    }
-
-    return { success: true, message: 'Booking request sent successfully.' };
-  }
-
-  function resolvePhpEndpoint() {
-    const formAction = form?.getAttribute('action')?.trim();
-    const raw = formAction || PHP_FALLBACK_ENDPOINT;
-    return new URL(raw, window.location.origin + window.location.pathname).toString();
+  function getPhpEndpoint() {
+    return form?.action ? form.action : new URL(PHP_FALLBACK_ENDPOINT, window.location.href).toString();
   }
 
   async function submitBooking(event) {
@@ -150,11 +116,14 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
       source: 'djynot.live contact form'
     };
 
-    const error = validateForm(payload);
-    if (error) return setFeedback(error);
+    const validationError = validateForm(payload);
+    if (validationError) {
+      setFeedback(validationError);
+      return;
+    }
 
     const usingFreeform = Boolean(FREEFORM_ENDPOINT.trim());
-    const endpoint = usingFreeform ? FREEFORM_ENDPOINT.trim() : resolvePhpEndpoint();
+    const endpoint = usingFreeform ? FREEFORM_ENDPOINT.trim() : getPhpEndpoint();
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
@@ -164,27 +133,28 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
       let result;
 
       if (usingFreeform) {
-        result = await postFreeform(endpoint, payload);
+        result = await post(endpoint, payload, 'urlencoded');
       } else {
         try {
-          result = await postJson(endpoint, payload);
+          result = await post(endpoint, payload, 'json');
         } catch (_) {
           try {
-            result = await postMultipart(endpoint, payload);
+            result = await post(endpoint, payload, 'multipart');
           } catch (_) {
-            result = await postUrlEncoded(endpoint, payload);
+            result = await post(endpoint, payload, 'urlencoded');
           }
         }
       }
 
       form.reset();
       setFeedback(result.message || 'Booking request sent successfully.', 'success');
-    } catch (err) {
-      const msg = err && err.message ? err.message : 'Unable to send your request at this time.';
-      if (/failed to fetch|networkerror|load failed/i.test(msg)) {
-        setFeedback('Connection issue detected. Confirm this page is served over HTTPS and contact.php exists at the same domain path. If using FREEFORM, set FREEFORM_ENDPOINT to your live endpoint URL.');
+    } catch (error) {
+      // Root cause in many shared-hosting setups: JS fetch can be blocked by host firewall/WAF while normal form payloads are accepted.
+      if (!usingFreeform && sendViaBeacon(endpoint, payload)) {
+        form.reset();
+        setFeedback('Booking request queued successfully. If you do not hear back soon, please call 415-506-9668.', 'success');
       } else {
-        setFeedback(msg);
+        setFeedback('Submission could not be completed from this browser session. Please call 415-506-9668 or email djynot@iCloud.com while endpoint connectivity is checked.');
       }
     } finally {
       submitBtn.disabled = false;
