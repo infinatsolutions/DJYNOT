@@ -103,13 +103,6 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
       return;
     }
 
-    if (window.location.protocol === 'http:' && !/localhost|127\.0\.0\.1/.test(window.location.hostname)) {
-      setFeedback('Redirecting to secure HTTPS connection...', 'success');
-      const secureUrl = 'https://' + window.location.host + window.location.pathname + window.location.search + window.location.hash;
-      window.location.replace(secureUrl);
-      return;
-    }
-
     const formData = new FormData(form);
     const payload = {
       fullName: String(formData.get('fullName') || '').trim(),
@@ -165,7 +158,7 @@ const PHP_FALLBACK_ENDPOINT = "contact.php";
         form.reset();
         setFeedback('Booking request queued successfully. If you do not hear back soon, please call 415-506-9668.', 'success');
       } else {
-        setFeedback('Submission could not be completed from this browser session. Please call 415-506-9668 or email djynot@iCloud.com while secure endpoint connectivity is checked.');
+        setFeedback('Submission could not be completed from this browser session. If HTTPS shows a certificate warning, install a valid certificate for djynot.live on the host first, then retry. You can also call 415-506-9668 or email djynot@iCloud.com.');
       }
     } finally {
       submitBtn.disabled = false;

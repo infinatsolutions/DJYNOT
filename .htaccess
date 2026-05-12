@@ -4,13 +4,18 @@
 Options -Indexes
 DirectoryIndex index.html index.php
 
-# Force HTTPS when available (safe for standard Apache shared hosting).
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteCond %{HTTPS} !=on [OR]
-  RewriteCond %{HTTP:X-Forwarded-Proto} !https
-  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-</IfModule>
+# NOTE:
+# Do not force HTTP->HTTPS redirect here until a valid certificate is installed
+# for the exact hostnames you serve (e.g., djynot.live and www.djynot.live).
+# Forcing HTTPS before certificate issuance causes Chrome NET::ERR_CERT_COMMON_NAME_INVALID.
+#
+# After the host confirms a valid cert is active, uncomment the block below.
+# <IfModule mod_rewrite.c>
+#   RewriteEngine On
+#   RewriteCond %{HTTPS} !=on [OR]
+#   RewriteCond %{HTTP:X-Forwarded-Proto} !https
+#   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# </IfModule>
 
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"

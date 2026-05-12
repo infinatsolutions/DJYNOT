@@ -32,7 +32,7 @@ dj-ynot-website/
 3. Upload `contact.php` to `public_html`.
 4. Upload the entire `assets/` folder to `public_html`.
 5. Upload `.htaccess` only if your host uses Apache and supports these directives.
-   - This file now includes HTTPS redirect and HSTS security headers.
+   - `.htaccess` includes security headers, but HTTPS redirect is intentionally commented out until a valid TLS certificate is installed.
 6. Visit `https://djynot.live`.
 7. Submit a booking request test.
 8. Confirm the message arrives at `djynotlive@icloud.com`.
@@ -103,6 +103,17 @@ Default mode works when `FREEFORM_ENDPOINT` is empty.
 - Ensure sender domain is verified if host requires it.
 - Ask host whether SMTP is mandatory.
 - If SMTP is required, replace `mail()` logic with host SMTP settings or use FREEFORM endpoint mode.
+
+## TLS certificate fix (Chrome NET::ERR_CERT_COMMON_NAME_INVALID)
+If Chrome shows **"Your connection is not private"** with `NET::ERR_CERT_COMMON_NAME_INVALID`, this is a server certificate problem (not a JavaScript/PHP form bug).
+
+Fix on hosting panel:
+1. Issue/install SSL for **djynot.live** (and **www.djynot.live** if used).
+2. Ensure the virtual host for this site is bound to that certificate.
+3. Wait for certificate provisioning to complete, then verify:
+   - `https://djynot.live`
+   - `https://www.djynot.live` (if enabled)
+4. Only after certificate validation passes should you enable HTTP→HTTPS redirect in `.htaccess` (uncomment the rewrite block).
 
 ## 12. How to customize website copy
 - Edit text content in `index.html` sections.
