@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-label="Abstract neon event lights and soundwave placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#120b22"/><stop offset=".48" stop-color="#08111f"/><stop offset="1" stop-color="#17100c"/></linearGradient>
+    <radialGradient id="glow" cx="50%" cy="42%" r="60%"><stop offset="0" stop-color="#24c4ff" stop-opacity=".42"/><stop offset="1" stop-color="#24c4ff" stop-opacity="0"/></radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <rect width="1200" height="700" fill="url(#bg)"/>
+  <circle cx="280" cy="220" r="170" fill="#7b2cff" opacity=".28" filter="url(#blur)"/>
+  <circle cx="870" cy="210" r="190" fill="#24c4ff" opacity=".22" filter="url(#blur)"/>
+  <circle cx="620" cy="430" r="160" fill="#e4b75b" opacity=".15" filter="url(#blur)"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M70 470 C190 390 290 550 410 470 S630 390 750 470 970 550 1130 440" stroke="#24c4ff" stroke-width="7" opacity=".78"/>
+    <path d="M70 525 C210 430 320 620 470 520 S700 430 840 520 1030 600 1130 500" stroke="#7b2cff" stroke-width="5" opacity=".72"/>
+    <path d="M90 590 H1110" stroke="#ffffff" stroke-width="1" opacity=".16"/>
+  </g>
+  <g opacity=".88">
+    <rect x="148" y="320" width="26" height="110" rx="13" fill="#24c4ff"/>
+    <rect x="196" y="280" width="26" height="150" rx="13" fill="#7b2cff"/>
+    <rect x="244" y="345" width="26" height="85" rx="13" fill="#e4b75b"/>
+    <rect x="292" y="250" width="26" height="180" rx="13" fill="#24c4ff"/>
+  </g>
+  <g transform="translate(775 320)" fill="none" stroke="#ffffff" opacity=".20">
+    <circle cx="0" cy="0" r="90"/>
+    <circle cx="0" cy="0" r="132"/>
+    <circle cx="0" cy="0" r="174"/>
+  </g>
+</svg>
