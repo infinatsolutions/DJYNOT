@@ -2,17 +2,31 @@
 declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Method not allowed.']);
+$config = [
+    'recipient_email' => 'djynotlive@icloud.com',
+    'from_email' => 'no-reply@djynot.live',
+    'source_label' => 'djynot.live contact form',
+];
+
+$configPath = __DIR__ . '/config.php';
+if (is_file($configPath)) {
+    $customConfig = require $configPath;
+    if (is_array($customConfig)) {
+        $config = array_merge($config, $customConfig);
+    }
+}
+
+function respond(bool $success, string $message, int $statusCode = 200): void {
+    http_response_code($statusCode);
+    echo json_encode(['success' => $success, 'message' => $message]);
     exit;
 }
 
-// Fixed recipient. You can move this to config.php if desired.
-$recipient = 'djynotlive@icloud.com';
-$subject = 'New DJ YNOT Booking Request';
-$source = 'djynot.live contact form';
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    respond(false, 'Method not allowed.', 405);
+}
 
 $rawInput = file_get_contents('php://input');
 $data = json_decode($rawInput ?: '', true);
@@ -20,75 +34,99 @@ if (!is_array($data)) {
     $data = $_POST;
 }
 
-function field(array $data, string $key, int $maxLen = 255): string {
+function cleanField(array $data, string $key, int $maxLength = 255, bool $preserveLines = false): string {
     $value = isset($data[$key]) ? trim((string)$data[$key]) : '';
     $value = strip_tags($value);
-    $value = str_replace(["\r", "\n", "%0a", "%0d"], ' ', $value);
-    if (mb_strlen($value) > $maxLen) {
-        $value = mb_substr($value, 0, $maxLen);
+    $value = str_replace(["\0", '%0a', '%0d'], '', $value);
+
+    if ($preserveLines) {
+        $value = preg_replace("/\r\n|\r/", "\n", $value) ?? $value;
+        $value = preg_replace("/\n{3,}/", "\n\n", $value) ?? $value;
+    } else {
+        $value = str_replace(["\r", "\n"], ' ', $value);
+        $value = preg_replace('/\s+/', ' ', $value) ?? $value;
     }
-    return $value;
+
+    if (strlen($value) > $maxLength) {
+        $value = substr($value, 0, $maxLength);
+    }
+
+    return trim($value);
 }
 
-$fullName = field($data, 'fullName', 100);
-$email = field($data, 'email', 120);
-$phone = field($data, 'phone', 30);
-$eventDate = field($data, 'eventDate', 30);
-$eventType = field($data, 'eventType', 100);
-$eventLocation = field($data, 'eventLocation', 140);
-$guestCount = field($data, 'guestCount', 12);
-$preferredService = field($data, 'preferredService', 80);
-$preferredContactMethod = field($data, 'preferredContactMethod', 20);
-$message = field($data, 'message', 2000);
-$website = field($data, 'website', 100);
-
-if ($website !== '') {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Spam check failed.']);
-    exit;
+function hasHeaderInjection(string $value): bool {
+    return preg_match('/[\r\n]/', $value) === 1;
 }
 
-$required = [$fullName, $email, $phone, $eventDate, $eventType, $eventLocation, $guestCount, $preferredService, $preferredContactMethod, $message];
-foreach ($required as $value) {
-    if ($value === '') {
-        http_response_code(422);
-        echo json_encode(['success' => false, 'message' => 'Please complete all required fields.']);
-        exit;
+$fields = [
+    'fullName' => cleanField($data, 'fullName', 100),
+    'email' => cleanField($data, 'email', 120),
+    'phone' => cleanField($data, 'phone', 30),
+    'eventDate' => cleanField($data, 'eventDate', 30),
+    'eventType' => cleanField($data, 'eventType', 100),
+    'eventLocation' => cleanField($data, 'eventLocation', 140),
+    'guestCount' => cleanField($data, 'guestCount', 12),
+    'preferredService' => cleanField($data, 'preferredService', 80),
+    'preferredContactMethod' => cleanField($data, 'preferredContactMethod', 20),
+    'message' => cleanField($data, 'message', 2000, true),
+    'website' => cleanField($data, 'website', 100),
+];
+
+if ($fields['website'] !== '') {
+    respond(false, 'Spam check failed.', 400);
+}
+
+$required = ['fullName', 'email', 'phone', 'eventDate', 'eventType', 'eventLocation', 'guestCount', 'preferredService', 'preferredContactMethod', 'message'];
+foreach ($required as $key) {
+    if ($fields[$key] === '') {
+        respond(false, 'Please complete all required fields.', 422);
     }
 }
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    http_response_code(422);
-    echo json_encode(['success' => false, 'message' => 'Please provide a valid email address.']);
-    exit;
+if (!filter_var($fields['email'], FILTER_VALIDATE_EMAIL) || hasHeaderInjection($fields['email'])) {
+    respond(false, 'Please provide a valid email address.', 422);
 }
 
-if (!preg_match('/^[0-9+()\-\.\s]{7,20}$/', $phone)) {
-    http_response_code(422);
-    echo json_encode(['success' => false, 'message' => 'Please provide a valid phone number.']);
-    exit;
+if (!preg_match('/^[0-9+()\-.\s]{7,20}$/', $fields['phone'])) {
+    respond(false, 'Please provide a valid phone number.', 422);
+}
+
+$guestCount = filter_var($fields['guestCount'], FILTER_VALIDATE_INT, [
+    'options' => ['min_range' => 1, 'max_range' => 50000],
+]);
+if ($guestCount === false) {
+    respond(false, 'Please provide a valid estimated guest count.', 422);
+}
+
+$recipient = (string)$config['recipient_email'];
+$from = (string)$config['from_email'];
+$source = (string)$config['source_label'];
+$subject = 'New DJ YNOT Booking Request';
+
+if (!filter_var($recipient, FILTER_VALIDATE_EMAIL) || !filter_var($from, FILTER_VALIDATE_EMAIL)) {
+    respond(false, 'Form email configuration is invalid.', 500);
 }
 
 $emailBody = "New DJ YNOT booking request\n\n"
-    . "Full Name: {$fullName}\n"
-    . "Email Address: {$email}\n"
-    . "Phone Number: {$phone}\n"
-    . "Event Date: {$eventDate}\n"
-    . "Event Type: {$eventType}\n"
-    . "Event Location: {$eventLocation}\n"
+    . "Full Name: {$fields['fullName']}\n"
+    . "Email Address: {$fields['email']}\n"
+    . "Phone Number: {$fields['phone']}\n"
+    . "Event Date: {$fields['eventDate']}\n"
+    . "Event Type: {$fields['eventType']}\n"
+    . "Event Location: {$fields['eventLocation']}\n"
     . "Estimated Guest Count: {$guestCount}\n"
-    . "Preferred Service: {$preferredService}\n"
-    . "Preferred Contact Method: {$preferredContactMethod}\n"
-    . "Message: {$message}\n"
+    . "Preferred Service: {$fields['preferredService']}\n"
+    . "Preferred Contact Method: {$fields['preferredContactMethod']}\n"
+    . "Message:\n{$fields['message']}\n\n"
     . "Source: {$source}\n"
-    . "Submitted At: " . date('Y-m-d H:i:s T') . "\n";
+    . "Submitted At: " . date('Y-m-d H:i:s T') . "\n"
+    . "IP Address: " . ($_SERVER['REMOTE_ADDR'] ?? 'Unavailable') . "\n";
 
-$from = 'no-reply@djynot.live';
 $headers = [
     'MIME-Version: 1.0',
     'Content-Type: text/plain; charset=UTF-8',
     'From: DJ YNOT Website <' . $from . '>',
-    'Reply-To: ' . $email,
+    'Reply-To: ' . $fields['email'],
     'X-Mailer: PHP/' . phpversion(),
 ];
 
@@ -97,9 +135,7 @@ $headers = [
 $sent = @mail($recipient, $subject, $emailBody, implode("\r\n", $headers));
 
 if (!$sent) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Unable to send right now. Please try again or contact by phone/email.']);
-    exit;
+    respond(false, 'Unable to send right now. Please try again or contact by phone/email.', 500);
 }
 
-echo json_encode(['success' => true, 'message' => 'Booking request sent successfully.']);
+respond(true, 'Booking request sent successfully.');

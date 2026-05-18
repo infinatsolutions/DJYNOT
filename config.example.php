@@ -1,6 +1,7 @@
 <?php
 // Optional configuration file example.
-// Copy to config.php if you want to centralize settings.
+// Copy this file to config.php to override contact.php defaults.
+// Never commit private SMTP/API credentials to this static website project.
 
 return [
     'recipient_email' => 'djynotlive@icloud.com',

@@ -4,12 +4,12 @@
 Options -Indexes
 DirectoryIndex index.html index.php
 
-# NOTE:
-# Do not force HTTP->HTTPS redirect here until a valid certificate is installed
-# for the exact hostnames you serve (e.g., djynot.live and www.djynot.live).
+# HTTPS rollout note:
+# Do not force HTTP->HTTPS redirect until a valid certificate is installed
+# for the exact hostnames you serve (for example: djynot.live and www.djynot.live).
 # Forcing HTTPS before certificate issuance causes Chrome NET::ERR_CERT_COMMON_NAME_INVALID.
 #
-# After the host confirms a valid cert is active, uncomment the block below.
+# After the host confirms a valid cert is active, uncomment this block:
 # <IfModule mod_rewrite.c>
 #   RewriteEngine On
 #   RewriteCond %{HTTPS} !=on [OR]
@@ -22,12 +22,13 @@ DirectoryIndex index.html index.php
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
-  # Enable HSTS only over HTTPS.
-  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+  # Enable HSTS only after SSL is valid on every hostname and HTTPS redirect is active.
+  # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 </IfModule>
 
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json
+  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json image/svg+xml
 </IfModule>
 
 <IfModule mod_expires.c>
@@ -37,5 +38,6 @@ DirectoryIndex index.html index.php
   ExpiresByType image/svg+xml "access plus 30 days"
   ExpiresByType image/png "access plus 30 days"
   ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/webp "access plus 30 days"
   ExpiresDefault "access plus 2 days"
 </IfModule>

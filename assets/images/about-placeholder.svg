@@ -1,8 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" role="img" aria-label="About DJ YNOT placeholder image">
-  <rect width="1000" height="700" fill="#12121a"/>
-  <rect x="120" y="120" width="760" height="460" rx="24" fill="#1a1a25" stroke="#e4b75b" stroke-width="4"/>
-  <circle cx="300" cy="350" r="100" fill="#24c4ff" opacity=".35"/>
-  <circle cx="500" cy="350" r="100" fill="#7b2cff" opacity=".35"/>
-  <circle cx="700" cy="350" r="100" fill="#e4b75b" opacity=".35"/>
-  <text x="170" y="620" fill="#f3f4ff" font-family="Arial, sans-serif" font-size="34">About Section Placeholder • Add brand photography</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" role="img" aria-label="Abstract premium nightlife spotlight placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#07070b"/><stop offset=".45" stop-color="#171329"/><stop offset="1" stop-color="#071725"/></linearGradient>
+    <linearGradient id="beam" x1="0" x2="1"><stop offset="0" stop-color="#24c4ff" stop-opacity="0"/><stop offset=".5" stop-color="#24c4ff" stop-opacity=".55"/><stop offset="1" stop-color="#24c4ff" stop-opacity="0"/></linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="22"/></filter>
+  </defs>
+  <rect width="1000" height="700" fill="url(#bg)"/>
+  <path d="M120 0 L390 700" stroke="url(#beam)" stroke-width="120" opacity=".32" filter="url(#soft)"/>
+  <path d="M890 0 L560 700" stroke="#7b2cff" stroke-width="130" opacity=".22" filter="url(#soft)"/>
+  <circle cx="500" cy="350" r="180" fill="none" stroke="#e4b75b" stroke-width="4" opacity=".36"/>
+  <circle cx="500" cy="350" r="112" fill="none" stroke="#24c4ff" stroke-width="3" opacity=".42"/>
+  <path d="M190 510 C330 440 430 590 560 505 S760 435 850 505" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity=".28"/>
+  <g fill="#ffffff" opacity=".55">
+    <circle cx="178" cy="146" r="3"/><circle cx="258" cy="224" r="2"/><circle cx="792" cy="164" r="3"/><circle cx="846" cy="290" r="2"/><circle cx="680" cy="90" r="2"/>
+  </g>
 </svg>
